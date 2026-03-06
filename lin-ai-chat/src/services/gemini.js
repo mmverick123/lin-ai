@@ -22,7 +22,7 @@ export const fetchGeminiStream = async (history, onMessage, onError, onComplete,
     parts: [{ text: msg.content }]
   }));
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?alt=sse&key=${API_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${API_KEY}`;
 
   try {
     const response = await fetch(url, {
