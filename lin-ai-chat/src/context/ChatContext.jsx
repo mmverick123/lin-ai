@@ -48,6 +48,18 @@ export const ChatProvider = ({ children }) => {
     });
   }, []);
 
+  // 替换最后一条助手消息的全部内容（用于重试时重置气泡）
+  const updateLastMessage = useCallback((content) => {
+    setMessages(prev => {
+      const newMessages = [...prev];
+      const lastMsg = newMessages[newMessages.length - 1];
+      if (lastMsg && lastMsg.role === 'assistant') {
+        newMessages[newMessages.length - 1] = { ...lastMsg, content };
+      }
+      return newMessages;
+    });
+  }, []);
+
   // 清空会话历史
   const clearHistory = useCallback(() => {
     setMessages([{ id: '1', role: 'assistant', content: '历史会话已清空，我们重新开始吧。' }]);
@@ -69,6 +81,7 @@ export const ChatProvider = ({ children }) => {
     setIsTyping,
     addMessage,
     appendToLastMessage,
+    updateLastMessage,
     clearHistory,
     theme,
     toggleTheme

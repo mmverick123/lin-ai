@@ -143,6 +143,51 @@ button:hover {
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
+.stop-btn--retry {
+  top: -76px;
+}
+
+/* 重试状态提示条 */
+.retry-status {
+  position: absolute;
+  top: -72px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #fff8e1;
+  color: #b45309;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 13px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.dark .retry-status {
+  background-color: #3b2f00;
+  color: #fcd34d;
+  border-color: #b45309;
+}
+
+/* 重试旋转图标 */
+.retry-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .input-form {
   display: flex;
   gap: 10px;
