@@ -1,5 +1,5 @@
 // src/components/ChatBox.jsx
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useChat } from '../context/ChatContext';
 import { fetchGeminiStream } from '../services/gemini';
 import VoiceRecorder from './VoiceRecorder';
@@ -78,9 +78,9 @@ export default function ChatBox() {
     }
   };
 
-  const handleVoiceInput = (text) => {
+  const handleVoiceInput = useCallback((text) => {
     setInput(prev => prev + text);
-  };
+  }, []);
 
   const stopGeneration = () => {
     if (abortControllerRef.current) {
