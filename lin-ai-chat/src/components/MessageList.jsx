@@ -39,23 +39,64 @@ export default function MessageList() {
   const { messages, isTyping } = useChat();
   const listRef = useRef(null);
   const dynamicRowHeight = useDynamicRowHeight({ defaultRowHeight: 80 });
-  // 用 ref 而非 state，避免引发额外重渲染
   const isAtBottomRef = useRef(true);
+  const lastScrollTopRef = useRef(0);
 
-  // 监听用户手动滚动，实时更新"是否在底部"的标志
+  const scrollToBottom = useCallback(() => {
+    const el = listRef.current?.element;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight - el.clientHeight;
+  }, []);
+
+  // 只在用户主动向上滚动时才判定为"离开底部"，
+  // 避免程序化滚动触发的 scroll 事件误将 isAtBottom 置为 false
   const handleScroll = useCallback(() => {
     const el = listRef.current?.element;
     if (!el) return;
-    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
-    isAtBottomRef.current = distanceFromBottom <= SCROLL_BOTTOM_THRESHOLD;
+
+    const { scrollTop, scrollHeight, clientHeight } = el;
+    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+    const scrolledUp = scrollTop < lastScrollTopRef.current;
+
+    if (scrolledUp && distanceFromBottom > SCROLL_BOTTOM_THRESHOLD) {
+      isAtBottomRef.current = false;
+    } else if (distanceFromBottom <= SCROLL_BOTTOM_THRESHOLD) {
+      isAtBottomRef.current = true;
+    }
+
+    lastScrollTopRef.current = scrollTop;
   }, []);
 
-  // 只有当用户本身就在底部时，才跟随新内容自动滚动
+  // 新消息添加时，强制滚动到底部
   useEffect(() => {
-    if (listRef.current && messages.length > 0 && isAtBottomRef.current) {
-      listRef.current.scrollToRow({ index: messages.length - 1, align: 'end' });
-    }
-  }, [messages.length, messages[messages.length - 1]?.content, isTyping]);
+    if (messages.length === 0) return;
+    isAtBottomRef.current = true;
+    requestAnimationFrame(scrollToBottom);
+  }, [messages.length, scrollToBottom]);
+
+  // 流式生成时，最后一条消息内容变化 → 主动触发滚动
+  const lastMsgContent = messages[messages.length - 1]?.content;
+  useEffect(() => {
+    if (!isAtBottomRef.current) return;
+    requestAnimationFrame(scrollToBottom);
+  }, [lastMsgContent, scrollToBottom]);
+
+  // ResizeObserver 监听 spacer 高度变化作为兜底保障，
+  // 当 messages.length 变化时重新获取 spacer 引用，防止 DOM 失效
+  useEffect(() => {
+    const el = listRef.current?.element;
+    if (!el) return;
+    const spacerEl = el.querySelector('[aria-hidden="true"]');
+    if (!spacerEl) return;
+
+    const observer = new ResizeObserver(() => {
+      if (isAtBottomRef.current) {
+        scrollToBottom();
+      }
+    });
+    observer.observe(spacerEl);
+    return () => observer.disconnect();
+  }, [messages.length, scrollToBottom]);
 
   return (
     <div className="message-list-container">
